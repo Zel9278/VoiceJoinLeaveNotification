@@ -35,7 +35,7 @@ client.on("voiceStateUpdate", (oldState, newState) => {
 
     if (oldUserChannel)return channel?.send({
         embeds: [{
-            title: `${newState.member?.user?.tag} Leaved`,
+            title: `${newState.member?.user?.tag} Leaved - ${oldState.channel.name}`,
             description: "NO",
             color: 0xff0055,
             timestamp: new Date()
@@ -44,7 +44,7 @@ client.on("voiceStateUpdate", (oldState, newState) => {
 
     if (newUserChannel) return channel?.send({
         embeds: [{
-            title: `${newState.member?.user?.tag} Joined`,
+            title: `${newState.member?.user?.tag} Joined - ${newState.channel.name}`,
             description: "はお",
             color: 0x0055ff,
             timestamp: new Date()
