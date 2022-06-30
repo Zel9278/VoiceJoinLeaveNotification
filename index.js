@@ -56,25 +56,25 @@ function onVoiceStatusUpdate(oldState, newState) {
       color: colors.YELLOW,
     }))
 
-    .when(oldUserChannel !== null && newUserChannel !== null, () => ({
+    .when(oldVoiceChannel !== null && newVoiceChannel !== null, () => ({
       title: `${newState.member?.user?.tag} Moved`,
       description: `${oldState.channel} -> ${newState.channel}`,
       color: colors.PURPLE,
     }))
 
-    .when(oldUserChannel !== null, () => ({
+    .when(oldVoiceChannel !== null, () => ({
       title: `${newState.member?.user?.tag} Left - ${oldState.channel.name}`,
       description: "NO",
       color: colors.RED,
     }))
 
-    .when(newUserChannel !== null, () => ({
+    .when(newVoiceChannel !== null, () => ({
       title: `${newState.member?.user?.tag} Joined - ${newState.channel.name}`,
       description: "はお",
       color: colors.BLUE,
     }))
 
-  if (hasResult) channel?.send({
+  if (hasResult) logChannel.send({
     ...partialEmbed,
     timestamp: new Date(),
   })
