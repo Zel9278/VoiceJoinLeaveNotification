@@ -7,76 +7,75 @@ client.on("ready", () => console.log("Bot is ready!"))
 client.on("voiceStateUpdate", onVoiceStatusUpdate)
 client.login(process.env.TOKEN)
 
+const colors = {
+  YELLOW: 0x555500,
+  PURPLE: 0x7755ff,
+  RED: 0xff0055,
+  BLUE: 0x0055ff,
+}
+
+const match = {
+  hasResult: false,
+  when(cond, getResult) {
+    if (!cond) return this
+
+    return {
+      hasResult: true,
+      result: getResult(),
+      when() { return this }
+    }
+  }
+}
+
+function shortenSessionId(id) {
+  return id.replace(/(?<=.{5}).+(?=.{5})/, "...")
+}
+
+const ignoredStates = [
+  "selfDeaf", "selfMute", "selfVideo", "serverDeaf", "serverMute", "streaming",
+]
 
 function onVoiceStatusUpdate(oldState, newState) {
-  if (oldState.selfDeaf !== newState.selfDeaf) return
-  if (oldState.selfMute !== newState.selfMute) return
-  if (oldState.selfVideo !== newState.selfVideo) return
-  if (oldState.serverDeaf !== newState.serverDeaf) return
-  if (oldState.serverMute !== newState.serverMute) return
-  if (oldState.streaming !== newState.streaming) return
+  for (const stateName of ignoredStates) {
+    if (oldState[stateName] !== newState[stateName]) return
+  }
 
-  const guild = client.guilds.resolve(
-    newState.guild?.id || oldState.guild?.id
-  )
-  if (!guild) return
-  const channel = guild.channels.cache.find((ch) => ch.name === "vc-log")
-  const oldUserChannel = oldState.channelId
-  const newUserChannel = newState.channelId
-  const oldSessionId = oldState.sessionId.replace(
-    /(?<=.{5}).+(?=.{5})/,
-    "..."
-  )
-  const newSessionId = newState.sessionId.replace(
-    /(?<=.{5}).+(?=.{5})/,
-    "..."
-  )
 
-  if (oldState.sessionId !== newState.sessionId)
-    return channel?.send({
-      embeds: [
-        {
-          title: `${newState.member?.user?.tag} Changed Session`,
-          description: `${oldSessionId} -> ${newSessionId}`,
-          color: 0x555500,
-          timestamp: new Date(),
-        },
-      ],
-    })
+  const guild = oldState.guild ?? newState.guild
+  const logChannel = guild.channels.cache.find((ch) => ch.name === "vc-log")
+  const oldVoiceChannel = oldState.channelId
+  const newVoiceChannel = newState.channelId
+  const oldSessionId = shortenSessionId(oldState.sessionId)
+  const newSessionId = shortenSessionId(newState.sessionId)
 
-  if (oldUserChannel && newUserChannel)
-    return channel?.send({
-      embeds: [
-        {
-          title: `${newState.member?.user?.tag} Moved`,
-          description: `${oldState.channel} -> ${newState.channel}`,
-          color: 0x7755ff,
-          timestamp: new Date(),
-        },
-      ],
-    })
+  const { hasResult, result: partialEmbed } = match
 
-  if (oldUserChannel)
-    return channel?.send({
-      embeds: [
-        {
-          title: `${newState.member?.user?.tag} Left - ${oldState.channel.name}`,
-          description: "NO",
-          color: 0xff0055,
-          timestamp: new Date(),
-        },
-      ],
-    })
+    .when(oldState.sessionId !== newState.sessionId, () => ({
+      title: `${newState.member?.user?.tag} Changed Session`,
+      description: `${oldSessionId} -> ${newSessionId}`,
+      color: colors.YELLOW,
+    }))
 
-  if (newUserChannel)
-    return channel?.send({
-      embeds: [
-        {
-          title: `${newState.member?.user?.tag} Joined - ${newState.channel.name}`,
-          description: "はお",
-          color: 0x0055ff,
-          timestamp: new Date(),
-        },
-      ],
-    })
+    .when(oldUserChannel !== null && newUserChannel !== null, () => ({
+      title: `${newState.member?.user?.tag} Moved`,
+      description: `${oldState.channel} -> ${newState.channel}`,
+      color: colors.PURPLE,
+    }))
+
+    .when(oldUserChannel !== null, () => ({
+      title: `${newState.member?.user?.tag} Left - ${oldState.channel.name}`,
+      description: "NO",
+      color: colors.RED,
+    }))
+
+    .when(newUserChannel !== null, () => ({
+      title: `${newState.member?.user?.tag} Joined - ${newState.channel.name}`,
+      description: "はお",
+      color: colors.BLUE,
+    }))
+
+  channel?.send({
+    ...partialEmbed,
+    timestamp: new Date(),
+  })
 }
