@@ -37,10 +37,8 @@ const ignoredStates = [
 
 function onVoiceStatusUpdate(oldState, newState) {
   for (const stateName of ignoredStates) {
-    const oldState = oldState[stateName]
-    const newState = newState[stateName]
-    if (typeof oldState !== 'boolean') continue
-    if (oldState !== newState) return
+    if (typeof oldState[stateName] !== 'boolean') continue
+    if (oldState[stateName] !== newState[stateName]) return
   }
 
   const guild = oldState.guild ?? newState.guild
