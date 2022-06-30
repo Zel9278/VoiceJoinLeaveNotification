@@ -3,8 +3,6 @@ require("dotenv").config()
 const { Client, Intents } = require("discord.js")
 const client = new Client({ intents: Object.values(Intents.FLAGS) })
 
-client.login(process.env.TOKEN)
-
 client.on("ready", () => console.log("Bot is ready!"))
 
 client.on("voiceStateUpdate", (oldState, newState) => {
@@ -79,3 +77,5 @@ client.on("voiceStateUpdate", (oldState, newState) => {
             ],
         })
 })
+
+client.login(process.env.TOKEN)
