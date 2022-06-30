@@ -74,7 +74,7 @@ function onVoiceStatusUpdate(oldState, newState) {
       color: colors.BLUE,
     }))
 
-  channel?.send({
+  if (hasResult) channel?.send({
     ...partialEmbed,
     timestamp: new Date(),
   })
