@@ -60,7 +60,7 @@ function onVoiceStatusUpdate(oldState, newState) {
     return channel?.send({
       embeds: [
         {
-          title: `${newState.member?.user?.tag} Leaved - ${oldState.channel.name}`,
+          title: `${newState.member?.user?.tag} Left - ${oldState.channel.name}`,
           description: "NO",
           color: 0xff0055,
           timestamp: new Date(),
