@@ -40,7 +40,6 @@ function onVoiceStatusUpdate(oldState, newState) {
     if (oldState[stateName] !== newState[stateName]) return
   }
 
-
   const guild = oldState.guild ?? newState.guild
   const logChannel = guild.channels.cache.find((ch) => ch.name === "vc-log")
   const oldVoiceChannel = oldState.channelId
