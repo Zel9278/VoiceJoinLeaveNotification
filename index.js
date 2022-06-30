@@ -75,7 +75,9 @@ function onVoiceStatusUpdate(oldState, newState) {
     }))
 
   if (hasResult) logChannel.send({
-    ...partialEmbed,
-    timestamp: new Date(),
+    embeds: [{
+      ...partialEmbed,
+      timestamp: new Date(),
+    }]
   })
 }
