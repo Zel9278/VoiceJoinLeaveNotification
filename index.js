@@ -1,9 +1,9 @@
-require("dotenv").config()
-const { Client, Intents } = require("discord.js")
+require('dotenv').config()
+const { Client, Intents } = require('discord.js')
 const client = new Client({ intents: Object.values(Intents.FLAGS) })
 
-client.on("ready", () => console.log("Bot is ready!"))
-client.on("voiceStateUpdate", onVoiceStatusUpdate)
+client.on('ready', () => console.log('Bot is ready!'))
+client.on('voiceStateUpdate', onVoiceStatusUpdate)
 client.login(process.env.TOKEN)
 
 const colors = {
@@ -29,21 +29,21 @@ const match = {
 }
 
 function shortenSessionId(id) {
-  return id?.replace(/(?<=.{5}).+(?=.{5})/, "...")
+  return id?.replace(/(?<=.{5}).+(?=.{5})/, '...')
 }
 
 const ignoredStates = [
-  "selfDeaf",
-  "selfMute",
-  "selfVideo",
-  "serverDeaf",
-  "serverMute",
-  "streaming",
+  'selfDeaf',
+  'selfMute',
+  'selfVideo',
+  'serverDeaf',
+  'serverMute',
+  'streaming',
 ]
 
 function onVoiceStatusUpdate(oldState, newState) {
   for (const stateName of ignoredStates) {
-    if (typeof oldState[stateName] !== "boolean") continue
+    if (typeof oldState[stateName] !== 'boolean') continue
     if (oldState[stateName] !== newState[stateName]) return
   }
 
@@ -51,7 +51,7 @@ function onVoiceStatusUpdate(oldState, newState) {
   console.log(newState.member?.user?.tag, newState.channel?.name)
 
   const guild = oldState.guild ?? newState.guild
-  const logChannel = guild.channels.cache.find((ch) => ch.name === "vc-log")
+  const logChannel = guild.channels.cache.find((ch) => ch.name === 'vc-log')
   const oldVoiceChannel = oldState.channelId
   const newVoiceChannel = newState.channelId
   const oldSessionId = shortenSessionId(oldState.sessionId)
@@ -73,13 +73,13 @@ function onVoiceStatusUpdate(oldState, newState) {
 
     .when(oldVoiceChannel !== null, () => ({
       title: `${newState.member?.user?.tag} Left - ${oldState.channel.name}`,
-      description: "NO",
+      description: 'NO',
       color: colors.RED,
     }))
 
     .when(newVoiceChannel !== null, () => ({
       title: `${newState.member?.user?.tag} Joined - ${newState.channel.name}`,
-      description: "はお",
+      description: 'はお',
       color: colors.BLUE,
     }))
 
