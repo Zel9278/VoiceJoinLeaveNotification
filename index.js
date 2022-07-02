@@ -2,7 +2,6 @@ require("dotenv").config()
 const { Client, Intents } = require("discord.js")
 const client = new Client({ intents: Object.values(Intents.FLAGS) })
 
-
 client.on("ready", () => console.log("Bot is ready!"))
 client.on("voiceStateUpdate", onVoiceStatusUpdate)
 client.login(process.env.TOKEN)
@@ -22,24 +21,34 @@ const match = {
     return {
       hasResult: true,
       result: getResult(),
-      when() { return this }
+      when() {
+        return this
+      },
     }
-  }
+  },
 }
 
 function shortenSessionId(id) {
-  return id.replace(/(?<=.{5}).+(?=.{5})/, "...")
+  return id?.replace(/(?<=.{5}).+(?=.{5})/, "...")
 }
 
 const ignoredStates = [
-  "selfDeaf", "selfMute", "selfVideo", "serverDeaf", "serverMute", "streaming",
+  "selfDeaf",
+  "selfMute",
+  "selfVideo",
+  "serverDeaf",
+  "serverMute",
+  "streaming",
 ]
 
 function onVoiceStatusUpdate(oldState, newState) {
   for (const stateName of ignoredStates) {
-    if (typeof oldState[stateName] !== 'boolean') continue
+    if (typeof oldState[stateName] !== "boolean") continue
     if (oldState[stateName] !== newState[stateName]) return
   }
+
+  console.log(oldState.member?.user?.tag, oldState.channel?.name)
+  console.log(newState.member?.user?.tag, newState.channel?.name)
 
   const guild = oldState.guild ?? newState.guild
   const logChannel = guild.channels.cache.find((ch) => ch.name === "vc-log")
@@ -74,10 +83,13 @@ function onVoiceStatusUpdate(oldState, newState) {
       color: colors.BLUE,
     }))
 
-  if (hasResult) logChannel.send({
-    embeds: [{
-      ...partialEmbed,
-      timestamp: new Date(),
-    }]
-  })
+  if (hasResult)
+    logChannel.send({
+      embeds: [
+        {
+          ...partialEmbed,
+          timestamp: new Date(),
+        },
+      ],
+    })
 }
