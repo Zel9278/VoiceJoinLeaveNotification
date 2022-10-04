@@ -1,81 +1,95 @@
-require("dotenv").config()
-
-const { Client, Intents } = require("discord.js")
+require('dotenv').config()
+const { Client, Intents } = require('discord.js')
 const client = new Client({ intents: Object.values(Intents.FLAGS) })
 
+client.on('ready', () => console.log('Bot is ready!'))
+client.on('voiceStateUpdate', onVoiceStatusUpdate)
 client.login(process.env.TOKEN)
 
-client.on("ready", () => console.log("Bot is ready!"))
+const colors = {
+  YELLOW: 0x555500,
+  PURPLE: 0x7755ff,
+  RED: 0xff0055,
+  BLUE: 0x0055ff,
+}
 
-client.on("voiceStateUpdate", (oldState, newState) => {
-    if (oldState.selfDeaf !== newState.selfDeaf) return
-    if (oldState.selfMute !== newState.selfMute) return
-    if (oldState.selfVideo !== newState.selfVideo) return
-    if (oldState.serverDeaf !== newState.serverDeaf) return
-    if (oldState.serverMute !== newState.serverMute) return
-    if (oldState.streaming !== newState.streaming) return
+const match = {
+  hasResult: false,
+  when(cond, getResult) {
+    if (!cond) return this
 
-    const guild = client.guilds.resolve(
-        newState.guild?.id || oldState.guild?.id
-    )
-    if (!guild) return
-    const channel = guild.channels.cache.find((ch) => ch.name === "vc-log")
-    const oldUserChannel = oldState.channelId
-    const newUserChannel = newState.channelId
-    const oldSessionId = oldState.sessionId.replace(
-        /(?<=.{5}).+(?=.{5})/,
-        "..."
-    )
-    const newSessionId = newState.sessionId.replace(
-        /(?<=.{5}).+(?=.{5})/,
-        "..."
-    )
+    return {
+      hasResult: true,
+      result: getResult(),
+      when() {
+        return this
+      },
+    }
+  },
+}
 
-    if (oldState.sessionId !== newState.sessionId)
-        return channel?.send({
-            embeds: [
-                {
-                    title: `${newState.member?.user?.tag} Changed Session`,
-                    description: `${oldSessionId} -> ${newSessionId}`,
-                    color: 0x555500,
-                    timestamp: new Date(),
-                },
-            ],
-        })
+function shortenSessionId(id) {
+  return id?.replace(/(?<=.{5}).+(?=.{5})/, '...')
+}
 
-    if (oldUserChannel && newUserChannel)
-        return channel?.send({
-            embeds: [
-                {
-                    title: `${newState.member?.user?.tag} Moved`,
-                    description: `${oldState.channel} -> ${newState.channel}`,
-                    color: 0x7755ff,
-                    timestamp: new Date(),
-                },
-            ],
-        })
+const ignoredStates = [
+  'selfDeaf',
+  'selfMute',
+  'selfVideo',
+  'serverDeaf',
+  'serverMute',
+  'streaming',
+]
 
-    if (oldUserChannel)
-        return channel?.send({
-            embeds: [
-                {
-                    title: `${newState.member?.user?.tag} Leaved - ${oldState.channel.name}`,
-                    description: "NO",
-                    color: 0xff0055,
-                    timestamp: new Date(),
-                },
-            ],
-        })
+function onVoiceStatusUpdate(oldState, newState) {
+  for (const stateName of ignoredStates) {
+    if (typeof oldState[stateName] !== 'boolean') continue
+    if (oldState[stateName] !== newState[stateName]) return
+  }
 
-    if (newUserChannel)
-        return channel?.send({
-            embeds: [
-                {
-                    title: `${newState.member?.user?.tag} Joined - ${newState.channel.name}`,
-                    description: "はお",
-                    color: 0x0055ff,
-                    timestamp: new Date(),
-                },
-            ],
-        })
-})
+  console.log(oldState.member?.user?.tag, oldState.channel?.name)
+  console.log(newState.member?.user?.tag, newState.channel?.name)
+
+  const guild = oldState.guild ?? newState.guild
+  const logChannel = guild.channels.cache.find((ch) => ch.name === 'vc-log')
+  const oldVoiceChannel = oldState.channelId
+  const newVoiceChannel = newState.channelId
+  const oldSessionId = shortenSessionId(oldState.sessionId)
+  const newSessionId = shortenSessionId(newState.sessionId)
+
+  const { hasResult, result: partialEmbed } = match
+
+    .when(oldState.sessionId !== newState.sessionId, () => ({
+      title: `${newState.member?.user?.tag} Changed Session`,
+      description: `${oldSessionId} -> ${newSessionId}`,
+      color: colors.YELLOW,
+    }))
+
+    .when(oldVoiceChannel !== null && newVoiceChannel !== null, () => ({
+      title: `${newState.member?.user?.tag} Moved`,
+      description: `${oldState.channel} -> ${newState.channel}`,
+      color: colors.PURPLE,
+    }))
+
+    .when(oldVoiceChannel !== null, () => ({
+      title: `${newState.member?.user?.tag} Left - ${oldState.channel.name}`,
+      description: 'NO',
+      color: colors.RED,
+    }))
+
+    .when(newVoiceChannel !== null, () => ({
+      title: `${newState.member?.user?.tag} Joined - ${newState.channel.name}`,
+      description: 'はお',
+      color: colors.BLUE,
+    }))
+
+  if (hasResult)
+    logChannel.send({
+      embeds: [
+        {
+          ...partialEmbed,
+          timestamp: new Date(),
+        },
+      ],
+    })
+}
