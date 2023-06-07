@@ -59,6 +59,18 @@ function onVoiceStatusUpdate(oldState, newState) {
 
   const { hasResult, result: partialEmbed } = match
 
+    .when(newVoiceChannel === null, () => ({
+      title: `${newState.member?.user?.tag} Left - ${oldState.channel.name}`,
+      description: 'NO',
+      color: colors.RED,
+    }))
+
+    .when(oldVoiceChannel === null, () => ({
+      title: `${newState.member?.user?.tag} Joined - ${newState.channel.name}`,
+      description: 'はお',
+      color: colors.BLUE,
+    }))
+
     .when(oldState.sessionId !== newState.sessionId, () => ({
       title: `${newState.member?.user?.tag} Changed Session`,
       description: `${oldSessionId} -> ${newSessionId}`,
@@ -69,18 +81,6 @@ function onVoiceStatusUpdate(oldState, newState) {
       title: `${newState.member?.user?.tag} Moved`,
       description: `${oldState.channel} -> ${newState.channel}`,
       color: colors.PURPLE,
-    }))
-
-    .when(oldVoiceChannel !== null, () => ({
-      title: `${newState.member?.user?.tag} Left - ${oldState.channel.name}`,
-      description: 'NO',
-      color: colors.RED,
-    }))
-
-    .when(newVoiceChannel !== null, () => ({
-      title: `${newState.member?.user?.tag} Joined - ${newState.channel.name}`,
-      description: 'はお',
-      color: colors.BLUE,
     }))
 
   if (hasResult)
