@@ -57,6 +57,8 @@ function onVoiceStatusUpdate(oldState, newState) {
   const oldSessionId = shortenSessionId(oldState.sessionId)
   const newSessionId = shortenSessionId(newState.sessionId)
 
+  if (!logChannel) return
+
   const { hasResult, result: partialEmbed } = match
 
     .when(newVoiceChannel === null, () => ({
